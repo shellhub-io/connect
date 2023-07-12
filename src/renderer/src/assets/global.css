@@ -1,0 +1,54 @@
+::-webkit-scrollbar {
+  display: none;
+}
+
+.full-height {
+    height: 100vh;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 1s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.slidedown-enter-active,
+.slidedown-leave-active {
+  transition: max-height 1s ease-in-out;
+}
+
+.slidedown-enter-to,
+.slidedown-leave-from {
+  overflow: hidden;
+  max-height: 1000px;
+}
+
+.slidedown-enter-from,
+.slidedown-leave-to {
+  overflow: hidden;
+  max-height: 0;
+}
+
+.bounce-enter-active {
+  animation: bounce-in 0.5s;
+}
+
+.bounce-leave-active {
+  animation: bounce-in 0.5s reverse;
+}
+
+@keyframes bounce-in {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
