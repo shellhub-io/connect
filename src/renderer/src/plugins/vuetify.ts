@@ -1,0 +1,59 @@
+// Styles
+import '@mdi/font/css/materialdesignicons.min.css'
+import '@fortawesome/fontawesome-free/css/all.css'
+import "vuetify/styles";
+import "../styles/_variables.scss"
+import { aliases as faAliases, fa } from "vuetify/iconsets/fa"
+
+// Vuetify
+import { createVuetify } from 'vuetify'
+import * as components from 'vuetify/components'
+import * as directives from 'vuetify/directives'
+
+const light = {
+  dark: false,
+  colors: {
+    primary: "#667acc",
+    secondary: "#FFFFFF",
+    background: "#F5F5F5",
+    tabs: "#F5F5F5",
+    foreground: "#F5F5F5",
+    paymentForm: "#F5F5F5",
+    "v-theme-background": "#FFFFFF",
+    "v-theme-surface": "#FFFFFF",
+    "v-theme-card": "#FFFFFF",
+  },
+};
+
+const dark = {
+  dark: true,
+  colors: {
+    primary: "#667acc",
+    secondary: "#1E2127",
+    background: "#18191B",
+    tabs: "#1E1E1E",
+    foreground: "#1E1E1E",
+    paymentForm: "#E0E0E0",
+    "v-theme-background": "#1E2127",
+    "v-theme-surface": "#1E2127",
+    "v-theme-card": "#22252B",
+  },
+};
+
+export default createVuetify({
+  components,
+  directives,
+  theme: {
+    defaultTheme: "dark",
+    themes: {
+      dark,
+      light,
+    },
+  },
+  icons: {
+    ...faAliases,
+    sets: {
+      fa,
+    },
+  },
+});
