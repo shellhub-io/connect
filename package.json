@@ -1,0 +1,27 @@
+{
+  "name": "shellhub-desktop",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "author": "",
+  "license": "ISC",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "shellhub",
+    "linux": {
+      "category": "Development"
+    },
+    "mac": {
+      "category": "public.app-category.developer-tools"
+    }
+  },
+  "postinstall": "electron-builder install-app-deps",
+  "devDependencies": {
+    "electron": "^25.2.0",
+    "electron-builder": "^24.9.1"
+  }
+}
