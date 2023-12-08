@@ -1,0 +1,53 @@
+name: Build
+on:
+  push:
+    branches: [ master ]
+    tags:
+      - v*
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        platform: [linux, windows, macos]
+        include:
+          - platform: linux
+            os: ubuntu-latest
+            target: AppImage
+          - platform: windows
+            os: ubuntu-latest
+            target: nsis
+          - platform: macos
+            os: macos-latest
+            target: dmg
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Node.js, NPM and Yarn
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+      - name: Install wine
+        if: ${{ matrix.platform == 'windows' }}
+        run: |
+          sudo dpkg --add-architecture i386
+          wget -nc https://dl.winehq.org/wine-builds/winehq.key
+          sudo apt-key add winehq.key
+          sudo add-apt-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ focal main'
+          sudo apt-get update
+          sudo apt install -y winehq-stable
+      - name: Build
+        env:
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          if [ "${{ matrix.platform }}" == "macos" ]; then
+            export CSC_IDENTITY_AUTO_DISCOVERY=false
+            EXTRA_ARGS="-c.mac.identity=null"
+          fi
+
+          yarn install
+
+          npx electron-builder --${{ matrix.platform }} ${{ matrix.target }} -p never build $EXTRA_ARGS
