@@ -42,6 +42,7 @@ jobs:
       - name: Build
         env:
           PLATFORM: ${{ matrix.platform }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ "${{ matrix.platform }}" == "macos" ]; then
             export CSC_IDENTITY_AUTO_DISCOVERY=false
