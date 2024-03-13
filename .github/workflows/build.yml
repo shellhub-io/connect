@@ -49,5 +49,6 @@ jobs:
           fi
 
           yarn install
+          yarn build
 
           npx electron-builder --${{ matrix.platform }} ${{ matrix.target }} -p never build $EXTRA_ARGS
