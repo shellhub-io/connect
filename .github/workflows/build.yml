@@ -53,9 +53,17 @@ jobs:
           yarn build
 
           npx electron-builder --${{ matrix.platform }} ${{ matrix.target }} -p never $EXTRA_ARGS
-      - name: Publish
+      - name: Upload artifact
         if: "contains(github.ref, 'refs/tags/v')"
         uses: actions/upload-artifact@v4
         with:
           name: Linux
           path: dist/*.AppImage
+      - name: Publish
+        if: "contains(github.ref, 'refs/tags/v')"
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          generate_release_notes: true
+          files: |
+            *.AppImage
