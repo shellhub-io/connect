@@ -71,7 +71,7 @@ const reload = () => {
 
 const beforeLoading = (e: DidStartNavigationEvent) => {
   if (!e.isInPlace) isLoading.value = true
-  url.value = e.url
+  if (e.isMainFrame) url.value = e.url
 }
 
 const afterLoading = () => {
