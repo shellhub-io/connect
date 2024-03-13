@@ -57,5 +57,5 @@ jobs:
         if: "contains(github.ref, 'refs/tags/v')"
         uses: actions/upload-artifact@v4
         with:
-          name: DEB package
-          path: dist/*.deb
+          name: Linux
+          path: dist/*.AppImage
