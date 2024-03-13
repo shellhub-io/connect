@@ -52,7 +52,7 @@ jobs:
           yarn install
           yarn build
 
-          npx electron-builder --${{ matrix.platform }} ${{ matrix.target }} -p always never $EXTRA_ARGS
+          npx electron-builder --${{ matrix.platform }} ${{ matrix.target }} -p never $EXTRA_ARGS
       - name: Publish
         if: "contains(github.ref, 'refs/tags/v')"
         uses: actions/upload-artifact@v4
