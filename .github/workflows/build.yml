@@ -1,32 +1,53 @@
-name: Build/release
-
-on: push
+name: Build
+on:
+  push:
+    branches: [ master ]
+    tags:
+      - v*
+  pull_request:
+    branches: [ master ]
 
 jobs:
-  release:
+  build:
     runs-on: ${{ matrix.os }}
-
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
-
+        platform: [linux, windows, macos]
+        include:
+          - platform: linux
+            os: ubuntu-latest
+            target: AppImage
+          - platform: windows
+            os: ubuntu-latest
+            target: nsis
+          - platform: macos
+            os: macos-latest
+            target: dmg
     steps:
-      - name: Check out Git repository
-        uses: actions/checkout@v1
-
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Install Node.js, NPM and Yarn
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
-          node-version: 18
+          node-version: '18'
+      - name: Install wine
+        if: ${{ matrix.platform == 'windows' }}
+        run: |
+          sudo dpkg --add-architecture i386
+          wget -nc https://dl.winehq.org/wine-builds/winehq.key
+          sudo apt-key add winehq.key
+          sudo add-apt-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ focal main'
+          sudo apt-get update
+          sudo apt install -y winehq-stable
+      - name: Build
+        env:
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          if [ "${{ matrix.platform }}" == "macos" ]; then
+            export CSC_IDENTITY_AUTO_DISCOVERY=false
+            EXTRA_ARGS="-c.mac.identity=null"
+          fi
 
-      - name: Build/release Electron app
-        uses: samuelmeuli/action-electron-builder@v1
-        with:
-          # GitHub token, automatically provided to the action
-          # (No need to define this secret in the repo settings)
-          github_token: ${{ secrets.github_token }}
+          yarn install
 
-          # If the commit is tagged with a version (e.g. "v1.0.0"),
-          # release the app after building
-          release: ${{ startsWith(github.ref, 'refs/tags/v') }}
-
+          npx electron-builder --${{ matrix.platform }} ${{ matrix.target }} -p never build $EXTRA_ARGS
