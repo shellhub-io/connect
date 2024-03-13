@@ -52,4 +52,4 @@ jobs:
           yarn install
           yarn build
 
-          npx electron-builder --${{ matrix.platform }} ${{ matrix.target }} -p onTag build $EXTRA_ARGS
+          npx electron-builder --${{ matrix.platform }} ${{ matrix.target }} -p always build $EXTRA_ARGS
