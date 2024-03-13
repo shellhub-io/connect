@@ -1,6 +1,6 @@
 {
   "name": "shellhub",
-  "version": "1.0.0",
+  "version": "0.0.8",
   "description": "An Electron application with Vue and TypeScript",
   "main": "./out/main/index.js",
   "author": "example.com",
