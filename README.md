@@ -11,6 +11,7 @@ the **Enterprise Edition** or **Community Edition**, managed or self-hosted.
 
 Download ShellHub Connect for your operating system:
 
+- ![ShellHub Connect for Windows](https://img.shields.io/badge/dynamic/json.svg?label=windows&url=https://api.github.com/repos/shellhub-io/desktop/releases/latest&query=$.assets[0].name&style=for-the-badge&logo=windows)
 - 🐧 [Linux](/releases/latest/download/asset-name.zip)
 - 💻 [Windows](/releases/latest/download/asset-name.zip)
 - 🍎 [MacOS X](/releases/latest/download/asset-name.zip)
