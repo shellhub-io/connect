@@ -67,24 +67,11 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Download linux artifact
+      - name: Download artifacts
         uses: actions/download-artifact@v4
-        with:
-          name: linux
-      - name: Download windows artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: windows
-      - name: Download macos artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: macos
       - name: Create release draft
         uses: softprops/action-gh-release@v2
         with:
           draft: true
           generate_release_notes: true
-          files: |
-            *.AppImage
-            *.exe
-            *.dmg
+          files: *
