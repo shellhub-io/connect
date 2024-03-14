@@ -1,5 +1,8 @@
 # shellhub
 
+![image](https://github.com/shellhub-io/desktop/assets/86747/2a92b9e4-8c39-4c7f-9bfd-b85049f4eca4)
+
+
 An Electron application with Vue and TypeScript
 
 ## Recommended IDE Setup
