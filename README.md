@@ -6,3 +6,11 @@ easily access their devices in **ShellHub Cloud** and on custom instances of She
 the **Enterprise Edition** or **Community Edition**, managed or self-hosted.
 
 ![image](https://github.com/shellhub-io/desktop/assets/86747/2a92b9e4-8c39-4c7f-9bfd-b85049f4eca4)
+
+## Download
+
+Download ShellHub Connect for your operating system:
+
+- 🐧 [Linux](/releases/latest/download/asset-name.zip)
+- 💻 [Windows](/releases/latest/download/asset-name.zip)
+- 🍎 [MacOS X](/releases/latest/download/asset-name.zip)
