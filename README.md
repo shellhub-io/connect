@@ -8,13 +8,13 @@
   <p align="center">Download ShellHub Connect for your platform:</p>
 
   <p align="center">
-    <a href="https://redir-url.fly.dev/?url=https://api.github.com/repos/shellhub-io/desktop/releases/latest&query=$.assets[0].browser_download_url)">
+    <a href="https://redir-url.fly.dev/?url=https://api.github.com/repos/shellhub-io/desktop/releases/latest&query=$.assets[0].browser_download_url">
       <img src="https://img.shields.io/badge/Windows-rgb(102,122,204)?style=flat-rounded&logo=windows&logoColor=white" height="28px"/>
     </a>
-    <a href="https://redir-url.fly.dev/?url=https://api.github.com/repos/shellhub-io/desktop/releases/latest&query=$.assets[1].browser_download_url)">
+    <a href="https://redir-url.fly.dev/?url=https://api.github.com/repos/shellhub-io/desktop/releases/latest&query=$.assets[1].browser_download_url">
       <img src='https://img.shields.io/badge/Linux-rgb(102,122,204)?style=flat-rounded&logo=linux&logoColor=white' height="28px"/>
     </a>
-    <a href="https://redir-url.fly.dev/?url=https://api.github.com/repos/shellhub-io/desktop/releases/latest&query=$.assets[2].browser_download_url)">
+    <a href="https://redir-url.fly.dev/?url=https://api.github.com/repos/shellhub-io/desktop/releases/latest&query=$.assets[2].browser_download_url">
       <img src='https://img.shields.io/badge/MacOS_X-rgb(102,122,204)?style=flat-rounded&logo=apple&logoColor=white' height="28px"/>
     </a>
   </p>
