@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow } from 'electron'
+import { app, shell, BrowserWindow, Menu, MenuItem } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -22,6 +22,18 @@ function createWindow(): void {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
+  })
+
+  mainWindow.webContents.on('context-menu', (_, props) => {
+    const menu = new Menu()
+    menu.append(new MenuItem({ label: 'Cut', role: 'cut' }))
+    menu.append(new MenuItem({ label: 'Copy', role: 'copy' }))
+
+    if (props.isEditable) {
+      menu.append(new MenuItem({ label: 'Paste', role: 'paste' }))
+    }
+
+    menu.popup()
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
