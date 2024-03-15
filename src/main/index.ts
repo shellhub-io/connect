@@ -25,15 +25,7 @@ function createWindow(): void {
   })
 
   mainWindow.webContents.on('context-menu', (_, props) => {
-    const menu = new Menu()
-    menu.append(new MenuItem({ label: 'Cut', role: 'cut' }))
-    menu.append(new MenuItem({ label: 'Copy', role: 'copy' }))
-
-    if (props.isEditable) {
-      menu.append(new MenuItem({ label: 'Paste', role: 'paste' }))
-    }
-
-    menu.popup()
+    createContextMenu(props)
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -71,6 +63,12 @@ app.whenReady().then(() => {
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+
+  app.on('web-contents-created', (_, webContents) => {
+    webContents.on('context-menu', (_, props) => {
+      createContextMenu(props)
+    })
+  })
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -82,5 +80,14 @@ app.on('window-all-closed', () => {
   }
 })
 
-// In this file you can include the rest of your app"s specific main process
-// code. You can also put them in separate files and require them here.
+function createContextMenu(props: Electron.ContextMenuParams) {
+  const menu = new Menu()
+  menu.append(new MenuItem({ label: 'Cut', role: 'cut' }))
+  menu.append(new MenuItem({ label: 'Copy', role: 'copy' }))
+
+  if (props.isEditable) {
+    menu.append(new MenuItem({ label: 'Paste', role: 'paste' }))
+  }
+
+  menu.popup()
+}
