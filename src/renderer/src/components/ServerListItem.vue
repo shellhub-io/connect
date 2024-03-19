@@ -1,5 +1,5 @@
 <template>
-  <v-list-item :value="item" lines="two" v-bind="props">
+  <v-list-item :key="index" :value="item" lines="two" v-bind="props">
     <v-list-item-subtitle>
       {{ item.url }}
     </v-list-item-subtitle>
