@@ -49,7 +49,8 @@
       >
         <webview
           :key="item.url"
-          :ref="(el: Electron.WebviewTag) => setWebViewRef(el, index)"
+          :src="item.url"
+          ref="list"
           class="flex-fill fill-height"
         ></webview>
       </v-window-item>
@@ -59,15 +60,16 @@
 
 <script setup lang="ts">
 import { WebviewTag, DidStartNavigationEvent } from 'electron'
-import { ref, onMounted, onBeforeUnmount, computed, Ref, reactive } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed, Ref, reactive, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { Instance, useAppStore } from '../stores'
 import ServerListItem from '@renderer/components/ServerListItem.vue'
+import { useRefreshableComputed } from '@renderer/lib/useRefreshable'
 
 const store = useAppStore()
 const router = useRouter()
 
-const webViewRef = ref<WebviewTag>()
+const webViewRef = computed<Electron.WebviewTag>(() => list.value[window.value])
 
 const items = ref(store.instances)
 const instance = computed({
@@ -78,67 +80,53 @@ const instance = computed({
     if (v[0]) store.selectInstance(v[0])
   }
 })
-const url = ref('')
-const isLoading = ref(true)
 
-const setWebViewRef = (el: Electron.WebviewTag, idx: number) => {
-  if (!el) return
-  console.log(el)
-  if (el) {
-    if (!list.value[idx]) {
-      list.value[idx] = { ref: el, name: 'ae' }
-      el.src = items.value[idx].url
-    }
-  }
-}
+const { computed: url, refresh: refreshURL } = useRefreshableComputed<string>(() => {
+  return webViewRef.value?.getAttribute('url') || ''
+})
 
-const window = ref(0);
+const { computed: isLoading, refresh: refreshLoading } = useRefreshableComputed<boolean>(() => {
+  return webViewRef.value?.getAttribute('loading') == 'true' || false
+})
 
-const goBack = () => {
-  router.push({ name: 'Login' })
-}
+const window = ref(0)
 
 const reload = () => {
   if (window.value == 1)
   window.value = 0
 else if (window.value == 0)
 window.value = 1
-  
+
   //webViewRef.value?.reload()
 }
 
 const beforeLoading = (e: DidStartNavigationEvent) => {
-  if (!e.isInPlace) isLoading.value = true
-  if (e.isMainFrame) url.value = e.url
+  const webView = e.target as Electron.WebviewTag
+
+  if (!e.isInPlace) {
+    webView.setAttribute('loading', 'true')
+    refreshLoading()
+  }
+
+  if (e.isMainFrame) {
+    webView.setAttribute('url', e.url)
+    refreshURL()
+  }
 }
 
-const afterLoading = () => {
-  isLoading.value = false
+const afterLoading = (e: Event) => {
+  const webView = e.target as Electron.WebviewTag
+  webView.setAttribute('loading', 'false')
+  refreshLoading()
 }
 
-interface Nada {
-  name: string,
-  ref: WebviewTag
-};
-
-const list: Ref<Nada[]> = ref([])
+const list: Ref<Electron.WebviewTag[]> = ref([])
 
 onMounted(() => {
-  //alert(items.value.length)
-  //const webView = webViewRef.value as WebviewTag
-
-  //webView.src = store.selectedInstance.url
-
-  //webView.addEventListener('did-start-navigation', beforeLoading)
-  //webView.addEventListener('did-stop-loading', afterLoading)
-  
-  console.log('deu')
+  list.value.forEach((webView) => {
+    webView.addEventListener('did-start-navigation', beforeLoading)
+    webView.addEventListener('did-finish-load', afterLoading)
+  })
 })
 
-onBeforeUnmount(() => {
-  //const webView = webViewRef.value as WebviewTag
-
-  //webView.removeEventListener('did-start-navigation', beforeLoading)
-  //webView.removeEventListener('did-stop-loading', afterLoading)
-})
 </script>
