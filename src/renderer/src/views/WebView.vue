@@ -59,15 +59,13 @@
 </template>
 
 <script setup lang="ts">
-import { WebviewTag, DidStartNavigationEvent } from 'electron'
-import { ref, onMounted, onBeforeUnmount, computed, Ref, reactive, watch, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
+import { DidStartNavigationEvent } from 'electron'
+import { ref, onMounted, onBeforeUnmount, computed, Ref  } from 'vue'
 import { Instance, useAppStore } from '../stores'
 import ServerListItem from '@renderer/components/ServerListItem.vue'
 import { useRefreshableComputed } from '@renderer/lib/useRefreshable'
 
 const store = useAppStore()
-const router = useRouter()
 
 const webViewRef = computed<Electron.WebviewTag>(() => list.value[window.value])
 
@@ -89,15 +87,17 @@ const { computed: isLoading, refresh: refreshLoading } = useRefreshableComputed<
   return webViewRef.value?.getAttribute('loading') == 'true' || false
 })
 
-const window = ref(0)
+const window = computed({
+  get() {
+    return items.value.indexOf(instance.value[0])
+  },
+  set(v) {
+    instance.value = [items.value[v]]
+  }
+})
 
 const reload = () => {
-  if (window.value == 1)
-  window.value = 0
-else if (window.value == 0)
-window.value = 1
-
-  //webViewRef.value?.reload()
+  webViewRef.value?.reload()
 }
 
 const beforeLoading = (e: DidStartNavigationEvent) => {
@@ -127,6 +127,8 @@ onMounted(() => {
     webView.addEventListener('did-start-navigation', beforeLoading)
     webView.addEventListener('did-finish-load', afterLoading)
   })
+
+  instance.value[0] = items.value[0]
 })
 
 </script>
