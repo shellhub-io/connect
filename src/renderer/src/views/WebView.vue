@@ -1,15 +1,8 @@
 <template>
-  <transition
-    name="fade"
-    appear
-  >
-
+  <transition name="fade" appear>
     <v-app-bar color="primary">
       <template #prepend>
-        <v-app-bar-nav-icon
-          variant="text"
-          @click="goBack"
-        >
+        <v-app-bar-nav-icon variant="text" @click="goBack">
           <v-icon>mdi-server</v-icon>
         </v-app-bar-nav-icon>
       </template>
@@ -30,20 +23,15 @@
         </template>
       </v-text-field>
 
-      <v-btn
-        class="ml-2"
-        variant="text"
-        icon="mdi-refresh"
-        @click="reload"
-      ></v-btn>
+      <v-btn class="ml-2" variant="text" icon="mdi-refresh" @click="reload"></v-btn>
     </v-app-bar>
   </transition>
   <v-main>
-    <webview
-      ref="webViewRef"
-      style="flex: 1"
-      class="fill-height"
-    ></webview>
+    <v-window class="fill-height">
+      <v-window-item class="flex-fill" :eager="true">
+        <webview ref="webViewRef" class="flex-fill fill-height"></webview>
+      </v-window-item>
+    </v-window>
   </v-main>
 </template>
 
