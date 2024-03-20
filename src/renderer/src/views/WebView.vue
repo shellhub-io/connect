@@ -1,6 +1,6 @@
 <template>
   <transition name="fade" appear>
-    <v-app-bar color="primary">
+    <v-app-bar color="primary" density="default" extended extension-height="48">
       <template #prepend>
         <v-menu>
           <template #activator="{ props }">
@@ -19,7 +19,12 @@
         </v-menu>
       </template>
 
-      <v-card-title class="pl-0 ml-2">{{ store.selectedInstance.name }}</v-card-title>
+      <v-btn-group color="primary" :border="true">
+        <v-btn icon="mdi-arrow-left-bold"></v-btn>
+        <v-btn icon="mdi-arrow-right-bold"></v-btn>
+        <v-divider vertical></v-divider>
+        <v-btn icon="mdi-refresh" @click="reload"></v-btn>
+      </v-btn-group>
       <v-text-field
         v-model="url"
         readonly
@@ -27,6 +32,7 @@
         single-line
         variant="solo"
         density="comfortable"
+        class="ml-2"
         :loading="isLoading"
       >
         <template #prepend-inner>
@@ -36,7 +42,32 @@
         </template>
       </v-text-field>
 
-      <v-btn class="ml-2" variant="text" icon="mdi-refresh" @click="reload"></v-btn>
+      <v-btn class="ml-2" variant="text" icon="mdi-plus-box" @click="reload"></v-btn>
+
+      <template #extension>
+        <v-tabs grow class="ml-0">
+          <v-tab class="text-subtitle-1">
+            ShellHub Cloud
+            <template #prepend>
+              <v-btn icon="mdi-cloud" size="small"></v-btn>
+            </template>
+            <template #append>
+              <v-btn icon="mdi-close" size="x-small"></v-btn>
+            </template>
+          </v-tab>
+          <v-tab class="text-subtitle-1">
+            Self-hosted Community
+            <template #prepend>
+              <v-btn icon="mdi-cloud" size="small"></v-btn>
+            </template>
+            <template #append>
+              <v-btn icon="mdi-close" size="x-small"></v-btn>
+            </template>
+          </v-tab>
+        </v-tabs>
+        <v-divider vertical></v-divider>
+        <v-btn icon="mdi-plus-box"></v-btn>
+      </template>
     </v-app-bar>
   </transition>
   <v-main>
@@ -132,3 +163,21 @@ onMounted(() => {
 })
 
 </script>
+
+<style scoped>
+.v-tab {
+  text-transform: none !important;
+  justify-content: stretch;
+ /* background-color: rgb(var(--v-theme-background));*/
+}
+
+>>> .v-tab .v-btn__content {
+  text-align: left;
+  display: block;
+}
+
+>>> div.v-toolbar__extension {
+  /*background-color: rgb(var(--v-theme-surface));*/
+}
+
+</style>
