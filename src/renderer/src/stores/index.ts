@@ -4,12 +4,14 @@ import { useStorage } from '@vueuse/core'
 export type Instance = {
   name: string
   url: string
+  version: string
   permanent: boolean
 }
 
 const permanentInstance: Instance = {
   name: 'ShellHub Cloud',
   url: 'https://cloud.shellhub.io',
+  version: '',
   permanent: true
 }
 
@@ -33,7 +35,7 @@ export const useAppStore = defineStore('app', {
 
   actions: {
     setActiveInstance(instance: Instance) {
-      this.activeInstance = instance;
+      this.activeInstance = instance
     },
 
     selectInstance(instance: Instance) {

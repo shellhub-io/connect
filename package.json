@@ -24,14 +24,18 @@
     "@electron-toolkit/utils": "^2.0.0",
     "@fortawesome/fontawesome-free": "^6.5.1",
     "@mdi/font": "^7.3.67",
+    "@vuelidate/core": "^2.0.3",
+    "@vuelidate/validators": "^2.0.4",
     "@vueuse/core": "^10.7.0",
     "axios": "^1.6.2",
     "electron-updater": "^6.1.1",
     "pinia": "^2.1.7",
     "sass": "^1.69.5",
+    "vee-validate": "^4.12.7",
     "vue-router": "^4.2.5",
     "vuetify": "^3.4.6",
-    "webfontloader": "^1.6.28"
+    "webfontloader": "^1.6.28",
+    "yup": "^1.4.0"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^1.0.1",
