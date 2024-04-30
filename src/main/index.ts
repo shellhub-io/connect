@@ -3,6 +3,20 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 
+function UpsertKeyValue(obj, keyToChange, value) {
+  const keyToChangeLower = keyToChange.toLowerCase()
+  for (const key of Object.keys(obj)) {
+    if (key.toLowerCase() === keyToChangeLower) {
+      // Reassign old key
+      obj[key] = value
+      // Done
+      return
+    }
+  }
+  // Insert at end instead
+  obj[keyToChange] = value
+}
+
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -13,11 +27,25 @@ function createWindow(): void {
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       webviewTag: true,
-      webSecurity: false,
       partition: 'persist:shellhub',
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
     }
+  })
+
+  mainWindow.webContents.session.webRequest.onBeforeSendHeaders((details, callback) => {
+    const { requestHeaders } = details
+    UpsertKeyValue(requestHeaders, 'Access-Control-Allow-Origin', ['*'])
+    callback({ requestHeaders })
+  })
+
+  mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+    const { responseHeaders } = details
+    UpsertKeyValue(responseHeaders, 'Access-Control-Allow-Origin', ['*'])
+    UpsertKeyValue(responseHeaders, 'Access-Control-Allow-Headers', ['*'])
+    callback({
+      responseHeaders
+    })
   })
 
   mainWindow.on('ready-to-show', () => {
