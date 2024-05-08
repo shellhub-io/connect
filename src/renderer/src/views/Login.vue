@@ -34,7 +34,12 @@
                       :items="items"
                     >
                       <template #item="{ item, index, props }">
-                        <v-list-item :value="item.value" lines="two" v-bind="props">
+                        <v-list-item
+                          :value="item.value"
+                          lines="two"
+                          v-bind="props"
+                          :disabled="item.raw.version === 'UNREACHABLE'"
+                        >
                           <v-list-item-subtitle>
                             {{ item.raw.url }}
                           </v-list-item-subtitle>
@@ -43,7 +48,7 @@
                             <div class="mr-4">
                               <v-chip
                                 size="x-small"
-                                :color="version === 'UNREACHABLE' ? 'warning' : 'success'"
+                                :color="item.raw.version === 'UNREACHABLE' ? 'error' : 'success'"
                                 >{{ item.raw.version }}</v-chip
                               >
                             </div>
@@ -110,7 +115,6 @@ const validForm = ref(false)
 const showError = ref(false)
 const connecting = ref(false)
 const show = ref(true)
-const version = ref('')
 const items = ref(store.instances)
 const newInstance = ref(false)
 const instance = computed({

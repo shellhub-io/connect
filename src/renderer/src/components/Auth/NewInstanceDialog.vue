@@ -128,10 +128,11 @@ const request = async (hostUrl: string, config: RequestInit) => {
 
 const addInstance = async () => {
   if (hasError.value) {
-    await request(`${url.value}/info`, {
-      method: 'GET'
-    })
+    return
   }
+  await request(`${url.value}/info`, {
+    method: 'GET'
+  })
 }
 
 const close = () => {
