@@ -1,6 +1,13 @@
 import { Stream } from 'node:stream'
 import net from 'node:net'
-import { SSHConnection, SSHEvent, SSHEmitter, SSHConnectionAuth } from './index.d'
+import {
+  SSHConnection,
+  SSHEvent,
+  SSHEmitter,
+  SSHConnectionCreds,
+  SSHPassword,
+  SSHPrivateKey
+} from './index.d'
 import socks from 'socksv5'
 import ssh2 from 'ssh2'
 
@@ -13,12 +20,12 @@ export class SSHConnectionPortForward implements SSHConnection {
     this.events = new SSHEmitter()
   }
 
-  connect(auth: SSHConnectionAuth) {
+  connect(creds: SSHConnectionCreds, auth: SSHPassword | SSHPrivateKey) {
     try {
       this.client.connect({
-        host: auth.host,
-        username: `${auth.username}@${auth.namespace}.${auth.device}`,
-        password: auth.password
+        host: creds.host,
+        username: `${creds.username}@${creds.namespace}.${creds.device}`,
+        ...auth
       })
     } catch (err: unknown) {
       console.error('SSH client throw a expection', err)

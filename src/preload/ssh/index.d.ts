@@ -10,10 +10,17 @@ export enum SSHEvent {
 
 export class SSHEmitter extends EventEmitter {}
 
-export type SSHConnectionAuth = {
+export type SSHPassword = {
+  password: string
+}
+
+export type SSHPrivateKey = {
+  privateKey: string | Buffer
+}
+
+export type SSHConnectionCreds = {
   host: string
   username: string
-  password: string
   namespace: string
   device: string
 }
@@ -33,7 +40,7 @@ export type SSHDynamicPortForwardSettings = {
 export interface SSHConnection {
   events: SSHEmitter
   client: ssh2.Client
-  connect(auth: SSHConnectionAuth): void
+  connect(creds: SSHConnectionCreds, auth: SSHPassword | SSHPrivateKey): void
   disconnect(): void
   onAuth(callback: any): void
   onConnect(callback: any): void

@@ -1,5 +1,5 @@
 import { describe, it, beforeEach, vi, expect } from 'vitest'
-import { SSHConnectionAuth } from './index.d'
+import { SSHConnectionCreds } from './index.d'
 import {
   SSHConnectionPortForward,
   SSHConnectionLocalPortForward,
@@ -40,15 +40,16 @@ beforeEach(() => {
 describe('SSHConnectionPortForward', () => {
   it('should connect using provided auth', () => {
     const sshConnection = new SSHConnectionPortForward({})
-    const auth: SSHConnectionAuth = {
+    const creds: SSHConnectionCreds = {
       host: 'localhost',
       username: 'user',
-      password: 'pass',
       namespace: 'namespace',
       device: 'device'
     }
 
-    sshConnection.connect(auth)
+    sshConnection.connect(creds, {
+      password: 'pass'
+    })
 
     expect(clientMock.connect).toHaveBeenCalledWith({
       host: 'localhost',
@@ -68,13 +69,17 @@ describe('SSHConnectionPortForward', () => {
       throw error
     })
 
-    sshConnection.connect({
-      host: 'localhost',
-      username: 'user',
-      password: 'pass',
-      namespace: 'ns',
-      device: 'dev'
-    })
+    sshConnection.connect(
+      {
+        host: 'localhost',
+        username: 'user',
+        namespace: 'ns',
+        device: 'dev'
+      },
+      {
+        password: 'pass'
+      }
+    )
 
     expect(errorCallback).toHaveBeenCalledWith(error)
   })
