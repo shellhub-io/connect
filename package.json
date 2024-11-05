@@ -1,5 +1,5 @@
 {
-  "name": "shellhub-connect",
+  "name": "shellhub-desktop",
   "version": "1.0.0",
   "description": "An application designed to simplify and enhance the experience of connecting and managing remote devices via ShellHub",
   "main": "./out/main/index.js",

@@ -3,9 +3,9 @@
 
   <hr/>
   
-  <h1 align="center">ShellHub Connect</h1>
+  <h1 align="center">ShellHub Desktop</h1>
 
-  <p align="center">Download ShellHub Connect for your platform:</p>
+  <p align="center">Download ShellHub Desktop for your platform:</p>
 
   <p align="center">
     <a href="https://redir-url.fly.dev/?url=https://api.github.com/repos/shellhub-io/desktop/releases/latest&query=$.assets[0].browser_download_url">
@@ -22,8 +22,8 @@
 
 ##
 
-ShellHub Connect is an application designed to simplify and enhance the experience of connecting and managing
-remote devices via ShellHub. With an intuitive and user-friendly interface, ShellHub Connect allows users to
+ShellHub Desktop is an application designed to simplify and enhance the experience of connecting and managing
+remote devices via ShellHub. With an intuitive and user-friendly interface, ShellHub Desktop allows users to
 easily access their devices in **ShellHub Cloud** and on custom instances of ShellHub, whether it's
 the **Enterprise Edition** or **Community Edition**, managed or self-hosted.
 

@@ -1,5 +1,5 @@
-appId: com.electron.app
-productName: shellhub
+appId: io.shellhub.app
+productName: ShellHub
 directories:
   buildResources: build
 files:
@@ -33,7 +33,7 @@ linux:
     - AppImage
     - snap
     - deb
-  maintainer: electronjs.org
+  maintainer: shellhub.io
   category: Utility
 appImage:
   artifactName: ${name}-${version}.${ext}
