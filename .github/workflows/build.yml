@@ -15,11 +15,11 @@ jobs:
         platform: [linux, windows, macos]
         include:
           - platform: linux
-            os: ubuntu-latest
+            os: ubuntu-24.04
             target: AppImage
             extension: AppImage
           - platform: windows
-            os: ubuntu-latest
+            os: ubuntu-24.04
             target: nsis
             extension: exe
           - platform: macos
@@ -32,16 +32,16 @@ jobs:
       - name: Install Node.js, NPM and Yarn
         uses: actions/setup-node@v2
         with:
-          node-version: '18'
+          node-version: '20'
       - name: Install wine
         if: ${{ matrix.platform == 'windows' }}
         run: |
           sudo dpkg --add-architecture i386
           wget -nc https://dl.winehq.org/wine-builds/winehq.key
           sudo apt-key add winehq.key
-          sudo add-apt-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ focal main'
+          sudo add-apt-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ noble main'
           sudo apt-get update
-          sudo apt install -y winehq-stable
+          sudo apt install -y winehq-stable || sudo apt install -y wine
       - name: Build
         env:
           PLATFORM: ${{ matrix.platform }}
