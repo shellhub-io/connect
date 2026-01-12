@@ -1,7 +1,9 @@
-import { app, shell, BrowserWindow, Menu, MenuItem } from 'electron'
+import { app, shell, BrowserWindow, Menu, MenuItem, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+
+let mainWindow: BrowserWindow | null = null
 
 function UpsertKeyValue(obj, keyToChange, value) {
   const keyToChangeLower = keyToChange.toLowerCase()
@@ -19,10 +21,11 @@ function UpsertKeyValue(obj, keyToChange, value) {
 
 function createWindow(): void {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
     show: false,
+    frame: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
@@ -49,7 +52,7 @@ function createWindow(): void {
   })
 
   mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
+    mainWindow?.show()
   })
 
   mainWindow.webContents.on('context-menu', (_, props) => {
@@ -119,3 +122,112 @@ function createContextMenu(props: Electron.ContextMenuParams) {
 
   menu.popup()
 }
+
+// IPC handlers for window controls
+ipcMain.on('minimize-window', () => {
+  mainWindow?.minimize()
+})
+
+ipcMain.on('maximize-window', () => {
+  if (mainWindow) {
+    if (mainWindow.isMaximized()) {
+      mainWindow.unmaximize()
+    } else {
+      mainWindow.maximize()
+    }
+  }
+})
+
+ipcMain.on('close-window', () => {
+  mainWindow?.close()
+})
+
+// IPC handler to show application menu as popup
+ipcMain.on('show-app-menu', () => {
+  if (mainWindow) {
+    const appMenu = Menu.buildFromTemplate([
+      {
+        label: 'Reload',
+        accelerator: 'CmdOrCtrl+R',
+        click: () => {
+          mainWindow?.reload()
+        }
+      },
+      {
+        label: 'Force Reload',
+        accelerator: 'CmdOrCtrl+Shift+R',
+        click: () => {
+          mainWindow?.webContents.reloadIgnoringCache()
+        }
+      },
+      {
+        label: 'Toggle Developer Tools',
+        accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I',
+        click: () => {
+          mainWindow?.webContents.toggleDevTools()
+        }
+      },
+      { type: 'separator' },
+      {
+        label: 'Toggle Fullscreen',
+        accelerator: process.platform === 'darwin' ? 'Ctrl+Command+F' : 'F11',
+        click: () => {
+          if (mainWindow) {
+            mainWindow.setFullScreen(!mainWindow.isFullScreen())
+          }
+        }
+      },
+      { type: 'separator' },
+      {
+        label: 'Zoom In',
+        accelerator: 'CmdOrCtrl+Plus',
+        click: () => {
+          if (mainWindow) {
+            const currentZoom = mainWindow.webContents.getZoomLevel()
+            mainWindow.webContents.setZoomLevel(currentZoom + 1)
+          }
+        }
+      },
+      {
+        label: 'Zoom Out',
+        accelerator: 'CmdOrCtrl+-',
+        click: () => {
+          if (mainWindow) {
+            const currentZoom = mainWindow.webContents.getZoomLevel()
+            mainWindow.webContents.setZoomLevel(currentZoom - 1)
+          }
+        }
+      },
+      {
+        label: 'Reset Zoom',
+        accelerator: 'CmdOrCtrl+0',
+        click: () => {
+          mainWindow?.webContents.setZoomLevel(0)
+        }
+      },
+      { type: 'separator' },
+      {
+        label: 'ShellHub Documentation',
+        click: async () => {
+          await shell.openExternal('https://docs.shellhub.io')
+        }
+      },
+      {
+        label: 'GitHub Repository',
+        click: async () => {
+          await shell.openExternal('https://github.com/shellhub-io/desktop')
+        }
+      },
+      { type: 'separator' },
+      {
+        label: 'Quit',
+        accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Ctrl+Q',
+        click: () => {
+          app.quit()
+        }
+      }
+    ])
+
+    appMenu.popup({ window: mainWindow })
+  }
+})
