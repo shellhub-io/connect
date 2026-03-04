@@ -2,3 +2,6 @@ node_modules
 dist
 out
 *.log*
+
+# Claude Code context files (symlinked from private repo)
+**/CLAUDE.md
