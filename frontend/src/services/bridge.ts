@@ -1,46 +1,47 @@
-// Native capability bridge (chrome side).
+// Native capability bridge — EXAMPLE / TEMPLATE (not currently wired).
 //
-// The embedded ShellHub web UI runs in an <iframe> served from the local reverse
-// proxy (a different origin from this Vue chrome, which is served from wails://).
-// Because of that origin boundary the iframe cannot call Wails/Go directly.
+// This is a working reference for letting the embedded ShellHub web UI invoke
+// native (Go/Wails) capabilities. It is intentionally NOT installed today: the
+// real ShellHub web UI does not call anything in the desktop shell yet. It is
+// kept here as the canonical example so the bridge can be turned on later
+// without rediscovering the design.
 //
-// Instead, the web UI posts a message to this chrome, and we relay the call to a
-// whitelisted Go binding (or Wails runtime function), then post the result back.
-// This is the only place that decides what the embedded UI is allowed to do.
+// Why a bridge is needed at all: the instance's web UI runs in an <iframe>
+// served from the local reverse proxy (a different origin from this Vue chrome,
+// which is served from wails://). Because of that origin boundary the iframe
+// cannot call Wails/Go directly. Instead it posts a message to this chrome, and
+// the chrome relays the call to a whitelisted Go binding / runtime function and
+// posts the result back.
 //
 // Wire protocol (window.postMessage), both directions tagged `__shellhubBridge`:
-//
 //   web UI  -> chrome : { __shellhubBridge: 'call', id, method, args }
 //   chrome  -> web UI : { __shellhubBridge: 'result', id, result }
 //                     | { __shellhubBridge: 'error',  id, error  }
 //
-// SECURITY: every message is checked against the active instance's proxy origin,
-// and only methods present in HANDLERS can be invoked. Private SSH key material
-// never crosses the bridge — SSHService.Sign signs in Go behind a native consent
-// dialog and returns only the signature.
+// To enable it: import { installNativeBridge } in AppLayout's onMounted and call
+//   installNativeBridge(() => webViewRef.value,
+//                       () => proxyUrl.value ? new URL(proxyUrl.value).origin : '')
+// then call its returned disposer in onBeforeUnmount.
+//
+// SECURITY when enabling: the iframe loads remote (potentially untrusted)
+// content laundered through the loopback proxy origin, so the origin check alone
+// is NOT a trust boundary — every method added to HANDLERS is reachable by
+// whatever the active instance serves. Keep the whitelist minimal, and gate any
+// sensitive capability (e.g. signing with a local SSH key) behind an explicit
+// per-call native consent prompt. See docs/native-bridge.md.
 
 import { Browser, Window } from '@wailsio/runtime'
-import { InstanceService, SSHService } from '@bindings'
+import { InstanceService } from '@bindings'
 
 type Handler = (...args: unknown[]) => unknown | Promise<unknown>
 
-// The allow-list. Add a line here to expose a new native capability to the web UI.
+// Example allow-list. Add a line here to expose a native capability to the web UI.
 const HANDLERS: Record<string, Handler> = {
-  // Window controls
   'window.minimise': () => Window.Minimise(),
   'window.toggleMaximise': () => Window.ToggleMaximise(),
   'window.close': () => Window.Close(),
-  'window.fullscreen': () => Window.ToggleFullscreen(),
-
-  // OS integration
   'browser.openURL': (url) => Browser.OpenURL(String(url)),
-
-  // Instance management
-  'instance.validate': (url) => InstanceService.Validate(String(url)),
-
-  // SSH (mini ssh-agent — private keys never leave Go)
-  'ssh.listPublicKeys': () => SSHService.ListPublicKeys(),
-  'ssh.sign': (keyName, dataB64) => SSHService.Sign(String(keyName), String(dataB64))
+  'instance.validate': (url) => InstanceService.Validate(String(url))
 }
 
 interface BridgeCall {
@@ -61,7 +62,7 @@ function isBridgeCall(value: unknown): value is BridgeCall {
 }
 
 /**
- * Installs the postMessage relay.
+ * Installs the postMessage relay. Currently unused — see the file header.
  *
  * @param getIframe        returns the live iframe element (or undefined)
  * @param getAllowedOrigin returns the origin currently allowed to call the bridge

@@ -27,7 +27,6 @@ func main() {
 		Description: "ShellHub Desktop",
 		Services: []application.Service{
 			application.NewService(services.NewInstanceService(px)),
-			application.NewService(&services.SSHService{}),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),

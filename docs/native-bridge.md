@@ -1,5 +1,12 @@
 # Native Capability Bridge — Protocol
 
+> **Status: not wired today.** The ShellHub web UI does not call anything in the
+> desktop shell yet, so the bridge is kept as a dormant **example/template** in
+> [`frontend/src/services/bridge.ts`](../frontend/src/services/bridge.ts) (it is not
+> installed). This document is the reference for turning it on later. An earlier
+> SSH proof-of-concept (`ssh.listPublicKeys` / `ssh.sign` + a Go `SSHService`) was
+> removed; it lives on here only as a worked example of a *sensitive* capability.
+
 The desktop app embeds the ShellHub web UI of the **active instance** inside an
 `<iframe>`. The iframe is served from a local reverse proxy (`http://127.0.0.1:<port>`),
 which is a **different origin** from the Vue chrome that hosts it (served from
@@ -62,21 +69,29 @@ This document specifies the wire protocol so the **web SDK** (to be added to the
   entirely in Go and are gated behind a **native consent dialog**. The private key
   never crosses the bridge — callers receive signatures, not keys.
 
-## Whitelisted methods (initial set)
+## Example whitelist (in `bridge.ts`)
 
-| Method                  | Args                          | Returns                | Notes |
-|-------------------------|-------------------------------|------------------------|-------|
-| `window.minimise`       | —                             | `void`                 | |
-| `window.toggleMaximise` | —                             | `void`                 | |
-| `window.close`          | —                             | `void`                 | |
-| `window.fullscreen`     | —                             | `void`                 | toggles fullscreen |
-| `browser.openURL`       | `(url: string)`               | `void`                 | opens in system browser |
-| `instance.validate`     | `(url: string)`               | `Info`                 | server-side `/info` fetch |
-| `ssh.listPublicKeys`    | —                             | `PublicKey[]`          | reads `~/.ssh/*.pub` |
-| `ssh.sign`              | `(keyName, dataB64: string)`  | `string` (sig, base64) | **native consent prompt**; private key stays in Go |
+These are the example handlers currently defined in the (dormant) `bridge.ts`:
 
-`Info` / `PublicKey` shapes are the Go models in
-[`internal/services`](../internal/services) (generated TS in `frontend/bindings`).
+| Method                  | Args               | Returns | Notes |
+|-------------------------|--------------------|---------|-------|
+| `window.minimise`       | —                  | `void`  | |
+| `window.toggleMaximise` | —                  | `void`  | |
+| `window.close`          | —                  | `void`  | |
+| `browser.openURL`       | `(url: string)`    | `void`  | opens in system browser |
+| `instance.validate`     | `(url: string)`    | `Info`  | server-side `/info` fetch (`InstanceService`) |
+
+`Info` is the Go model in [`internal/services`](../internal/services) (generated TS in
+`frontend/bindings`).
+
+### Future example: a *sensitive* capability (SSH signing)
+
+A removed proof-of-concept exposed local SSH keys. If reintroduced, it is the model for a
+sensitive capability: a Go `SSHService` with `ListPublicKeys()` (free) and
+`Sign(keyName, dataB64)` gated behind a **native consent dialog**, where the **private key never
+crosses the bridge** — callers receive a signature, not the key. Note the consent dialog must be
+implemented so it actually blocks until the user answers (Wails v3 `Dialog.Question().Show()` does
+not block on its own — use a channel around the button `OnClick` callbacks).
 
 ## Reference web SDK (to implement later in the web repo)
 

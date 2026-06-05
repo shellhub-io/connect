@@ -146,12 +146,11 @@
 </style>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useAppStore, Instance } from '../stores'
 import { useDisplay } from 'vuetify'
 import { Window, Browser } from '@wailsio/runtime'
 import { InstanceService } from '@bindings'
-import { installNativeBridge } from '../services/bridge'
 import NewInstanceDialog from '../components/Auth/NewInstanceDialog.vue'
 
 const store = useAppStore()
@@ -167,8 +166,6 @@ const instances = ref(store.instances)
 const newInstance = ref(false)
 
 const selectedInstance = ref<Instance>(store.selectedInstance)
-
-let uninstallBridge: (() => void) | undefined
 
 const selectInstance = (instance: Instance) => {
   selectedInstance.value = instance
@@ -241,16 +238,6 @@ onMounted(async () => {
     }
   }
 
-  // Wire the native-capability bridge: only the active proxy origin may call it.
-  uninstallBridge = installNativeBridge(
-    () => webViewRef.value,
-    () => (proxyUrl.value ? new URL(proxyUrl.value).origin : '')
-  )
-
   await loadInstance(selectedInstance.value)
-})
-
-onBeforeUnmount(() => {
-  uninstallBridge?.()
 })
 </script>
