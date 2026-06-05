@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>ShellHub</title>
+    <!--
+      Trusted local shell. We allow:
+       - inline styles (Vuetify injects them) and data: fonts/images
+       - the Wails runtime ('unsafe-eval' is needed by the dev bundle)
+       - framing the local reverse proxy that serves the active instance
+      https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: wails: http://wails.localhost; frame-src http://127.0.0.1:* http://localhost:*; img-src 'self' data: blob: https:; connect-src 'self' wails: http://wails.localhost http://127.0.0.1:* ws://127.0.0.1:*"
+    />
+  </head>
+
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
