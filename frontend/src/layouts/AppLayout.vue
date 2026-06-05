@@ -124,10 +124,10 @@
     <v-main>
       <iframe
         ref="webViewRef"
-        :src="proxyUrl"
         class="fill-height"
         style="flex: 1; width: 100%; border: none"
         @load="afterLoading"
+        @error="afterLoading"
       />
     </v-main>
 
@@ -146,7 +146,7 @@
 </style>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
 import { useAppStore, Instance } from '../stores'
 import { useDisplay } from 'vuetify'
 import { Window, Browser } from '@wailsio/runtime'
@@ -184,25 +184,47 @@ const editInstance = (index: number) => {
 
 const removeInstance = (index: number) => {
   if (store.instances[index] === selectedInstance.value) {
-    selectedInstance.value = store.instances[index - 1]
+    selectedInstance.value = store.instances[Math.max(0, index - 1)]
   }
   store.deleteInstance(index)
 }
 
+// Loading-state helpers: a single @load can never fire (slow/errored/non-document
+// response), so back it with a timeout so the spinner can't get stuck on forever.
+let loadTimer: ReturnType<typeof setTimeout> | undefined
+const startLoading = () => {
+  isLoading.value = true
+  if (loadTimer) clearTimeout(loadTimer)
+  loadTimer = setTimeout(() => (isLoading.value = false), 20000)
+}
+const afterLoading = () => {
+  isLoading.value = false
+  if (loadTimer) clearTimeout(loadTimer)
+}
+
 // Points the Go reverse proxy at `instance` and loads it in the iframe.
 const loadInstance = async (instance: Instance) => {
-  isLoading.value = true
   url.value = instance.url
-  proxyUrl.value = await InstanceService.SetActiveInstance(instance.url)
-  // Force the iframe to (re)load the proxy now that the target changed.
   const iframe = webViewRef.value
-  if (iframe) iframe.src = proxyUrl.value
+  // Tear the old document down first so its in-flight requests are aborted before
+  // the proxy target is swapped — otherwise they'd be forwarded to the new instance.
+  if (iframe) iframe.src = 'about:blank'
+  try {
+    proxyUrl.value = await InstanceService.SetActiveInstance(instance.url)
+  } catch (err) {
+    console.error('failed to set active instance:', err)
+    return
+  }
+  if (iframe) {
+    startLoading()
+    iframe.src = proxyUrl.value
+  }
 }
 
 const reload = () => {
   const iframe = webViewRef.value
-  if (iframe) {
-    isLoading.value = true
+  if (iframe && proxyUrl.value) {
+    startLoading()
     // Reassigning src reliably reloads a cross-origin iframe.
     iframe.src = proxyUrl.value
   }
@@ -216,10 +238,6 @@ const minimizeWindow = () => Window.Minimise()
 const maximizeWindow = () => Window.ToggleMaximise()
 const closeWindow = () => Window.Close()
 
-const afterLoading = () => {
-  isLoading.value = false
-}
-
 // Reload the iframe whenever the selected instance changes.
 watch(selectedInstance, async (newVal) => {
   store.selectInstance(newVal)
@@ -227,17 +245,39 @@ watch(selectedInstance, async (newVal) => {
   await loadInstance(newVal)
 })
 
-onMounted(async () => {
-  // Validate instances server-side (no CORS, unlike a renderer fetch).
-  for (const item of instances.value) {
-    try {
-      const info = await InstanceService.Validate(item.url)
-      item.version = info.version
-    } catch {
-      item.version = 'UNREACHABLE'
-    }
+// Open external links from inside the iframe (target=_blank / window.open to a
+// different origin) in the system browser. The proxy injects a script that posts
+// the URL here (see internal/proxy externalLinkScript).
+const onExternalLink = (event: MessageEvent) => {
+  const iframe = webViewRef.value
+  if (!iframe || event.source !== iframe.contentWindow) return
+  const data = event.data as { __shellhubOpenExternal?: unknown }
+  const target = data?.__shellhubOpenExternal
+  if (typeof target === 'string' && /^https?:\/\//i.test(target)) {
+    Browser.OpenURL(target)
   }
+}
 
-  await loadInstance(selectedInstance.value)
+onMounted(() => {
+  window.addEventListener('message', onExternalLink)
+
+  // Load the selected instance immediately; don't gate it on validation.
+  loadInstance(selectedInstance.value)
+
+  // Validate all instances in parallel (server-side, no CORS) so a slow/unreachable
+  // one doesn't serialize startup behind the others' 10s timeouts.
+  void Promise.all(
+    instances.value.map(async (item) => {
+      try {
+        item.version = (await InstanceService.Validate(item.url)).version
+      } catch {
+        item.version = 'UNREACHABLE'
+      }
+    })
+  )
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('message', onExternalLink)
 })
 </script>

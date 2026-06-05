@@ -13,13 +13,13 @@ import (
 )
 
 // InstanceService is bound to the frontend. It validates ShellHub instances and
-// controls which instance the reverse proxy serves into the iframe.
+// controls which instance is served into the iframe.
 type InstanceService struct {
-	proxy *proxy.Proxy
+	proxy *proxy.Manager
 }
 
-// NewInstanceService wires the service to the running reverse proxy.
-func NewInstanceService(p *proxy.Proxy) *InstanceService {
+// NewInstanceService wires the service to the reverse-proxy manager.
+func NewInstanceService(p *proxy.Manager) *InstanceService {
 	return &InstanceService{proxy: p}
 }
 
@@ -71,16 +71,8 @@ func (s *InstanceService) Validate(baseURL string) (Info, error) {
 	return info, nil
 }
 
-// SetActiveInstance points the reverse proxy at the given instance so the iframe
-// loads it. Returns the loopback URL the iframe should use.
+// SetActiveInstance ensures a dedicated reverse proxy exists for the given
+// instance and returns the loopback URL (its own origin) the iframe should load.
 func (s *InstanceService) SetActiveInstance(baseURL string) (string, error) {
-	if err := s.proxy.SetTarget(baseURL); err != nil {
-		return "", err
-	}
-	return s.proxy.URL(), nil
-}
-
-// ProxyURL returns the loopback URL the iframe should load for the active instance.
-func (s *InstanceService) ProxyURL() string {
-	return s.proxy.URL()
+	return s.proxy.Ensure(baseURL)
 }

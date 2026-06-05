@@ -15,12 +15,10 @@ import (
 var assets embed.FS
 
 func main() {
-	// Start the reverse proxy that serves the active ShellHub instance into the
-	// iframe (strips frame-blocking headers, carries the terminal websocket).
-	px, err := proxy.New()
-	if err != nil {
-		log.Fatalf("failed to start reverse proxy: %v", err)
-	}
+	// Manages per-instance reverse proxies that serve each ShellHub instance into
+	// the iframe (own loopback origin each; strips frame-blocking headers, carries
+	// the terminal websocket).
+	px := proxy.NewManager()
 
 	app := application.New(application.Options{
 		Name:        "ShellHub",
