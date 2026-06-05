@@ -1,5 +1,17 @@
+# Wails / Go
+.task
+bin
+build/bin
+build/linux/appimage/build
+build/windows/nsis/MicrosoftEdgeWebview2Setup.exe
+
+# Frontend
 node_modules
-dist
+frontend/dist
+frontend/node_modules
+frontend/bindings
+
+# Misc
 out
 *.log*
 

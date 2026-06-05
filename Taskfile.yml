@@ -1,0 +1,44 @@
+version: '3'
+
+vars:
+  APP_NAME: "shellhub"
+  BIN_DIR: "bin"
+  PACKAGE_MANAGER: '{{.PACKAGE_MANAGER | default "npm"}}'
+  VITE_PORT: '{{.WAILS_VITE_PORT | default 9245}}'
+
+includes:
+  common: ./build/Taskfile.yml
+  windows: ./build/windows/Taskfile.yml
+  darwin: ./build/darwin/Taskfile.yml
+  linux: ./build/linux/Taskfile.yml
+
+tasks:
+  build:
+    summary: Builds the application
+    cmds:
+      - task: "{{OS}}:build"
+
+  package:
+    summary: Packages a production build of the application
+    cmds:
+      - task: "{{OS}}:package"
+
+  run:
+    summary: Runs the application
+    cmds:
+      - task: "{{OS}}:run"
+
+  dev:
+    summary: Runs the application in development mode
+    cmds:
+      - wails3 dev -config ./build/config.yml -port {{.VITE_PORT}}
+
+  setup:docker:
+    summary: Builds the Docker image for cross-compiling to any platform (~800MB download)
+    cmds:
+      - task: common:setup:docker
+
+  # After `task setup:docker`, cross-compile with e.g.:
+  #   docker run --rm -v $(pwd):/app wails-cross darwin arm64
+  #   docker run --rm -v $(pwd):/app wails-cross windows amd64
+  #   docker run --rm -v $(pwd):/app wails-cross linux amd64

@@ -7,84 +7,119 @@ on:
   pull_request:
     branches: [ master ]
 
+# Builds the Wails v3 desktop app for each platform on its native runner.
+# Linux produces AppImage + .deb + .rpm; Windows an NSIS installer; macOS an .app bundle.
+#
+# NOTE: the toolchain targets GTK4 / WebKitGTK 6.0 (matches build/linux/nfpm/nfpm.yaml deps).
+# That requires a recent runner (ubuntu-24.04+). If AppImage generation fails on the
+# linuxdeploy GTK plugin (e.g. missing obsolete libcroco), see the GTK3 alternative noted
+# in docs / the migration notes.
+
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        platform: [linux, windows, macos]
-        include:
-          - platform: linux
-            os: ubuntu-latest
-            target: AppImage
-            extension: AppImage
-          - platform: windows
-            os: ubuntu-latest
-            target: nsis
-            extension: exe
-          - platform: macos
-            os: macos-latest
-            target: dmg
-            extension: dmg
+  build-linux:
+    runs-on: ubuntu-24.04
+    env:
+      # linuxdeploy/appimagetool need FUSE; extract-and-run avoids requiring it on CI.
+      APPIMAGE_EXTRACT_AND_RUN: 1
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Install Node.js, NPM and Yarn
-        uses: actions/setup-node@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
-          node-version: '18'
-      - name: Install wine
-        if: ${{ matrix.platform == 'windows' }}
+          go-version: 'stable'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install system dependencies (GTK4 + WebKitGTK 6.0)
         run: |
-          sudo dpkg --add-architecture i386
-          wget -nc https://dl.winehq.org/wine-builds/winehq.key
-          sudo apt-key add winehq.key
-          sudo add-apt-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ focal main'
           sudo apt-get update
-          sudo apt install -y winehq-stable
-      - name: Build
-        env:
-          PLATFORM: ${{ matrix.platform }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          sudo apt-get install -y libgtk-4-dev libwebkitgtk-6.0-dev
+
+      - name: Ensure libcroco is present for AppImage bundling
+        # The linuxdeploy GTK plugin still references the obsolete libcroco; it must exist on the
+        # BUILD HOST so it gets bundled INTO the AppImage (the result stays self-contained). Install
+        # from apt, falling back to the archived .deb if the runner's repos no longer ship it.
         run: |
-          if [ "${{ matrix.platform }}" == "macos" ]; then
-            export CSC_IDENTITY_AUTO_DISCOVERY=false
-            EXTRA_ARGS="-c.mac.identity=null"
-          fi
+          sudo apt-get install -y libcroco3 || \
+          ( curl -fsSL -o /tmp/libcroco3.deb \
+              http://archive.ubuntu.com/ubuntu/pool/main/libc/libcroco/libcroco3_0.6.13-1ubuntu0.1_amd64.deb \
+            && sudo dpkg -i /tmp/libcroco3.deb )
 
-          yarn install
-          yarn build
+      - name: Install Wails3 CLI
+        run: go install github.com/wailsapp/wails/v3/cmd/wails3@latest
 
-          npx electron-builder --${{ matrix.platform }} ${{ matrix.target }} -p never $EXTRA_ARGS
-      - name: Upload artifact
-        if: "contains(github.ref, 'refs/tags/v')"
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.platform }}
-          path: dist/*.${{ matrix.extension }}
-  publish:
-    if: "contains(github.ref, 'refs/tags/v')"
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download windows artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: windows
-      - name: Download linux artifact
-        uses: actions/download-artifact@v4
+      # .deb / .rpm use nfpm (pure Go) and are reliable — build them first.
+      - name: Build .deb and .rpm
+        run: |
+          wails3 task linux:create:deb
+          wails3 task linux:create:rpm
+
+      # AppImage uses linuxdeploy; isolate it so a failure doesn't drop the deb/rpm artifacts.
+      - name: Build AppImage
+        continue-on-error: true
+        run: wails3 task linux:create:appimage
+
+      - uses: actions/upload-artifact@v4
         with:
           name: linux
-      - name: Download macos artifact
-        uses: actions/download-artifact@v4
+          path: |
+            bin/*.AppImage
+            bin/*.deb
+            bin/*.rpm
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install NSIS
+        run: choco install nsis -y
+      - name: Install Wails3 CLI
+        run: go install github.com/wailsapp/wails/v3/cmd/wails3@latest
+      - name: Package (NSIS installer)
+        run: wails3 task package
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: bin/*.exe
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Wails3 CLI
+        run: go install github.com/wailsapp/wails/v3/cmd/wails3@latest
+      - name: Package (.app bundle)
+        run: wails3 task package
+      - name: Zip .app for upload
+        run: ditto -c -k --keepParent "bin/ShellHub.app" "bin/ShellHub-macos.zip"
+      - uses: actions/upload-artifact@v4
         with:
           name: macos
+          path: bin/*.zip
+
+  publish:
+    if: "contains(github.ref, 'refs/tags/v')"
+    needs: [build-linux, build-windows, build-macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
       - name: Create release draft
         uses: softprops/action-gh-release@v2
         with:
           draft: true
           generate_release_notes: true
-          files: |
-            *.exe
-            *.AppImage
-            *.dmg
+          files: artifacts/**/*
