@@ -28,9 +28,9 @@ jobs:
             extension: dmg
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install Node.js, NPM and Yarn
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v6
         with:
           node-version: '18'
       - name: Install wine
@@ -58,7 +58,7 @@ jobs:
           npx electron-builder --${{ matrix.platform }} ${{ matrix.target }} -p never $EXTRA_ARGS
       - name: Upload artifact
         if: "contains(github.ref, 'refs/tags/v')"
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.platform }}
           path: dist/*.${{ matrix.extension }}
@@ -68,19 +68,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download windows artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: windows
       - name: Download linux artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: linux
       - name: Download macos artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: macos
       - name: Create release draft
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           draft: true
           generate_release_notes: true
