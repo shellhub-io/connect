@@ -15,11 +15,11 @@ jobs:
         platform: [linux, windows, macos]
         include:
           - platform: linux
-            os: ubuntu-latest
+            os: octocat-microvm
             target: AppImage
             extension: AppImage
           - platform: windows
-            os: ubuntu-latest
+            os: octocat-microvm
             target: nsis
             extension: exe
           - platform: macos
@@ -33,15 +33,6 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: '18'
-      - name: Install wine
-        if: ${{ matrix.platform == 'windows' }}
-        run: |
-          sudo dpkg --add-architecture i386
-          wget -nc https://dl.winehq.org/wine-builds/winehq.key
-          sudo apt-key add winehq.key
-          sudo add-apt-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ focal main'
-          sudo apt-get update
-          sudo apt install -y winehq-stable
       - name: Build
         env:
           PLATFORM: ${{ matrix.platform }}
@@ -65,7 +56,7 @@ jobs:
   publish:
     if: "contains(github.ref, 'refs/tags/v')"
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: octocat-microvm
     steps:
       - name: Download windows artifact
         uses: actions/download-artifact@v8
